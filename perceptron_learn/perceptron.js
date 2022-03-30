@@ -10,7 +10,7 @@ let w = [1,1,1];
 let w_old = [0, 0, 0];
 let d_w = [0, 0, 0];
 //the four expected outcomes, for the or function truth table
-let y = [0, 1, 1, 1];
+let y = [0, 0, 0, 1];
 let ctr = 0;
 //
 let learn_rate = 0.3;
