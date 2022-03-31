@@ -1,4 +1,6 @@
-# applied ai
+# Coursework for Applied Ai
 
-- here you find starter-code for the exercises of applied ai
-- you should work in your own branch and have a separate copy of his repository, in order to be able to update without conflicts 
+of Jan Samak
+
+[The devDiary](https://jsamak.pages.coco.study/applied-ai-devdiary/)
+[The project repository](https://git.coco.study/jsamak/neurosight)
