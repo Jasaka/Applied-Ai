@@ -22,9 +22,8 @@ function draw() {
         drawNode(outputNodes[0][i], 2, i);
         outputNodes[1][i] = threshold(inputNodes[i][0] * weights[1][0] + inputNodes[i][1] * weights[1][1] + inputNodes[i][2] * weights[1][2]);
         drawNode(outputNodes[1][i], 3, i);
-        setText()
     }
-
+    setText()
 }
 
 function drawNode(fillValue, column, row) {

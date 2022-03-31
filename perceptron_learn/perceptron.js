@@ -1,88 +1,228 @@
-// initialise input variables
-let x = [
+let inputNodes = [
+    {
+        coordinate: {
+            x: 50,
+            y: 75
+        },
+        state: "off"
+    }, {
+        coordinate: {
+            x: 50,
+            y: 150
+        },
+        state: "on"
+    }, {
+        coordinate: {
+            x: 50,
+            y: 225
+        },
+        state: "off"
+    }
+];
+
+let outputNodes = [
+    {
+        coordinate: {
+            x: 150,
+            y: 112
+        },
+        state: "off"
+    }, {
+        coordinate: {
+            x: 150,
+            y: 187
+        },
+        state: "off"
+    }
+];
+
+let inputVariables = [
     [1, 0, 0],
     [1, 0, 1],
     [1, 1, 0],
     [1, 1, 1]
 ];
-let w = [1,1,1];
-//buffer of old weights just for
-let w_old = [0, 0, 0];
-let d_w = [0, 0, 0];
-//the four expected outcomes, for the or function truth table
-let y = [0, 0, 0, 1];
-let ctr = 0;
-//
-let learn_rate = 0.3;
-//controls for interaction
+
+let weights = [[1, 1, 1], [1, 1, 1]];
+let currentNode = 0;
+
+const learningRate = 0.3;
+const expectedOutput = [[0, 0, 0, 1], [0, 1, 1, 1]];
+let lastOutput = [[0, 0, 0, 0], [0, 0, 0, 0]];
+
+let stepCount = 0;
 let pause = false;
 let step = true;
 let next = true;
-//position of the nodes
-let input_layer_x = 50;
-let input_layer_y = 50;
-let input_layer_y_step = 90;
-let output_layer_x = 200;
-let output_layer_y = input_layer_y+input_layer_y_step;
 
 function setup() {
-    cnv = createCanvas(300, 500);
-    //w = [random(-1, 1), random(-1, 1), random(-1, 1)]
+    const canvas = createCanvas(500, 500);
     w = [1, 1, 1];
     frameRate(1);
-    colorMode(HSB, 360, 1, 1, 1);
+    colorMode(HSB, 360, 100, 100);
     background(0, 0, 1);
 }
 
 function draw() {
     if (!pause) {
         if (!step | next) {
-            background(255);
+            background(0, 0, 100);
+            printTutorial()
             next = false;
-            ctr++;
-            // use modulo 4 to step through the 4 possible combinations one after another
-            ctr = ctr % 4;
-            //compute the response of the output neuron
-            out = threshold(x[ctr][0] * w[0] + x[ctr][1] * w[1] + x[ctr][2] * w[2]);
-            //compute the error between the expected outcome y[ctr] and the result of the previous comp.
-            error = y[ctr] - out;
-            //adapt the weights towards the input vector if there is an error
-            for (j = 0; j < 3; j++) {
-                d_w[j] = learn_rate * error * x[ctr][j];
-                w[j] = w[j] + d_w[j];
+            stepCount++;
+            stepCount = stepCount % 4;
+            if (stepCount === 0) {
+                toggleCurrentWeight();
             }
-            //draw the network
-            for (j = 0; j < 3; j++) {
-                noFill();
-                strokeWeight(10 + 5 * w[j]);
-                stroke(160 + w[j] * 180, .5, .8);
-                bezier(input_layer_x , input_layer_y + input_layer_y_step * j, input_layer_y_step, input_layer_y + input_layer_y_step * j, output_layer_x, input_layer_y + input_layer_y_step * j, output_layer_x, output_layer_y);
-                strokeWeight(1);
-                stroke(0, 1, 0);
-                strokeWeight(0);
-                fill(20, 1, 0.2 + x[ctr][j]);
-                ellipse(input_layer_x, input_layer_y + input_layer_y_step * j, 50, 50);
-                stroke(0);
-                fill(0);
-                text("w_" + j + "= " + w[j], input_layer_x+40, 40 + input_layer_y_step * j);
+            let outputNeuron = computeOutputNeuron(inputVariables[stepCount], weights[currentNode]);
+            let error = expectedOutput[currentNode][stepCount] - outputNeuron;
+
+            for (let i = 0; i < weights[currentNode].length; i++) {
+                weights[currentNode][i] += learningRate * error * inputVariables[stepCount][i];
             }
-            strokeWeight(abs(error)*6);
-            stroke(200,1,1,1);
-            fill(20, 1, 0.2 + out);
-            ellipse(output_layer_x, output_layer_y, 50, 50);
-            fill(0,1,0);
-            strokeWeight(0);
-            text("type n for next step, r for running, p for pause",10, height-200 );
-            text("s for step-mode", 10, height-170 )
+
+            for (let i = 0; i < inputNodes.length; i++) {
+                inputNodes[i].state = inputVariables[stepCount][i] === 1 ? "on" : "off";
+            }
+
+            outputNodes[currentNode].state = outputNeuron === 1 ? "on" : "off";
+
+            drawNetwork(currentNode);
+
+            lastOutput[currentNode][stepCount] = outputNeuron;
+
+            printWeights();
+            if (stepCount === 3 && isLastOutputEqual()) {
+                pause = true;
+            }
         }
     }
 }
+
+function isLastOutputEqualForWeight(weight) {
+    for (let i = 0; i < lastOutput[weight].length; i++) {
+        if (lastOutput[weight][i] !== expectedOutput[weight][i]) {
+            return false;
+        }
+    }
+    return true;
+}
+
+function isLastOutputEqual() {
+    for (let i = 0; i < lastOutput.length; i++) {
+        for (let j = 0; j < lastOutput[i].length; j++) {
+            if (lastOutput[i][j] !== expectedOutput[i][j]) {
+                return false;
+            }
+        }
+    }
+    return true;
+}
+
 
 function threshold(x) {
     if (x > 0)
         return 1;
     else
         return 0;
+}
+
+function computeOutputNeuron(input, weights) {
+    let sum = 0;
+    for (let i = 0; i < input.length; i++) {
+        sum += input[i] * weights[i];
+    }
+    return threshold(sum);
+}
+
+function toggleCurrentWeight() {
+    currentNode = currentNode === 0 ? 1 : 0;
+}
+
+function drawConnection(strokeMode, startNode, endNode) {
+    setStroke(strokeMode);
+    strokeWeight(5);
+    line(startNode.coordinate.x, startNode.coordinate.y, endNode.coordinate.x, endNode.coordinate.y);
+}
+
+function drawNode(node) {
+    strokeWeight(0);
+    if (node.state === "on") {
+        fill(170, 50, 70);
+    } else {
+        fill(255, 1, 0);
+    }
+    ellipse(node.coordinate.x, node.coordinate.y, 50, 50);
+}
+
+function setStroke(colorMode) {
+    strokeWeight(10);
+    switch (colorMode) {
+        case "wrong":
+            stroke(0, 36, 70);
+            break;
+        case "correct":
+            stroke(118, 36, 70);
+            break;
+        case "searching":
+            stroke(283, 36, 70);
+            break;
+        default:
+            stroke(0, 0, 0);
+            break;
+    }
+}
+
+function drawNetwork(currentNetwork) {
+    for (let i = 0; i < inputNodes.length; i++) {
+        for (let j = 0; j < outputNodes.length; j++) {
+            if (currentNetwork === j) {
+                if (isLastOutputEqualForWeight(currentNetwork)) {
+                    drawConnection("correct", inputNodes[i], outputNodes[j]);
+                } else {
+                    drawConnection("searching", inputNodes[i], outputNodes[j]);
+                }
+            } else {
+                if (isLastOutputEqualForWeight(1 - currentNetwork)) {
+                    drawConnection("correct", inputNodes[i], outputNodes[j]);
+                } else {
+                    drawConnection("wrong", inputNodes[i], outputNodes[j]);
+                }
+            }
+        }
+    }
+
+    for (let i = 0; i < inputNodes.length; i++) {
+        drawNode(inputNodes[i]);
+        printLabel("x", i, inputNodes[i]);
+    }
+
+    for (let i = 0; i < outputNodes.length; i++) {
+        drawNode(outputNodes[i]);
+        printLabel("y", i, outputNodes[i]);
+    }
+}
+
+function printLabel(main, sub, node) {
+    strokeWeight(0);
+    fill(255, 0, 100);
+    text(sub, node.coordinate.x, node.coordinate.y + 10);
+    text(main, node.coordinate.x - 5, node.coordinate.y + 5);
+}
+
+function printTutorial() {
+    strokeWeight(0);
+    fill(255, 0, 0);
+    text("type n for next step, r for running, p for pause", 10, height - 200);
+    text("s for step-mode", 10, height - 170)
+}
+
+function printWeights() {
+    strokeWeight(0);
+    fill(255, 0, 0);
+    for (let i = 0; i < weights.length; i++) {
+        text(weights[i], outputNodes[i].coordinate.x + 40, outputNodes[i].coordinate.y);
+    }
 }
 
 function keyPressed() {
