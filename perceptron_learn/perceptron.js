@@ -1,39 +1,12 @@
 let inputNodes = [
-    {
-        coordinate: {
-            x: 50,
-            y: 75
-        },
-        state: "off"
-    }, {
-        coordinate: {
-            x: 50,
-            y: 150
-        },
-        state: "on"
-    }, {
-        coordinate: {
-            x: 50,
-            y: 225
-        },
-        state: "off"
-    }
+    new Node(new Coordinate(50, 75), "off", new Label("x", "0")),
+    new Node(new Coordinate(50, 150), "on", new Label("x", "1")),
+    new Node(new Coordinate(50, 225), "off", new Label("x", "2"))
 ];
 
 let outputNodes = [
-    {
-        coordinate: {
-            x: 150,
-            y: 112
-        },
-        state: "off"
-    }, {
-        coordinate: {
-            x: 150,
-            y: 187
-        },
-        state: "off"
-    }
+    new Node(new Coordinate(150, 112), "off", new Label("y", "0")),
+    new Node(new Coordinate(150, 187), "off", new Label("y", "1"))
 ];
 
 let inputVariables = [
@@ -57,7 +30,6 @@ let next = true;
 
 function setup() {
     const canvas = createCanvas(500, 500);
-    w = [1, 1, 1];
     frameRate(1);
     colorMode(HSB, 360, 100, 100);
     background(0, 0, 1);
@@ -67,13 +39,16 @@ function draw() {
     if (!pause) {
         if (!step | next) {
             background(0, 0, 100);
-            printTutorial()
+            printTutorial(height)
+
             next = false;
+
             stepCount++;
             stepCount = stepCount % 4;
             if (stepCount === 0) {
                 toggleCurrentWeight();
             }
+
             let outputNeuron = computeOutputNeuron(inputVariables[stepCount], weights[currentNode]);
             let error = expectedOutput[currentNode][stepCount] - outputNeuron;
 
@@ -87,11 +62,11 @@ function draw() {
 
             outputNodes[currentNode].state = outputNeuron === 1 ? "on" : "off";
 
-            drawNetwork(currentNode);
+            drawNetwork(currentNode, inputNodes, outputNodes);
 
             lastOutput[currentNode][stepCount] = outputNeuron;
 
-            printWeights();
+            printWeights(weights);
             if (stepCount === 3 && isLastOutputEqual()) {
                 pause = true;
             }
@@ -119,7 +94,6 @@ function isLastOutputEqual() {
     return true;
 }
 
-
 function threshold(x) {
     if (x > 0)
         return 1;
@@ -137,92 +111,6 @@ function computeOutputNeuron(input, weights) {
 
 function toggleCurrentWeight() {
     currentNode = currentNode === 0 ? 1 : 0;
-}
-
-function drawConnection(strokeMode, startNode, endNode) {
-    setStroke(strokeMode);
-    strokeWeight(5);
-    line(startNode.coordinate.x, startNode.coordinate.y, endNode.coordinate.x, endNode.coordinate.y);
-}
-
-function drawNode(node) {
-    strokeWeight(0);
-    if (node.state === "on") {
-        fill(170, 50, 70);
-    } else {
-        fill(255, 1, 0);
-    }
-    ellipse(node.coordinate.x, node.coordinate.y, 50, 50);
-}
-
-function setStroke(colorMode) {
-    strokeWeight(10);
-    switch (colorMode) {
-        case "wrong":
-            stroke(0, 36, 70);
-            break;
-        case "correct":
-            stroke(118, 36, 70);
-            break;
-        case "searching":
-            stroke(283, 36, 70);
-            break;
-        default:
-            stroke(0, 0, 0);
-            break;
-    }
-}
-
-function drawNetwork(currentNetwork) {
-    for (let i = 0; i < inputNodes.length; i++) {
-        for (let j = 0; j < outputNodes.length; j++) {
-            if (currentNetwork === j) {
-                if (isLastOutputEqualForWeight(currentNetwork)) {
-                    drawConnection("correct", inputNodes[i], outputNodes[j]);
-                } else {
-                    drawConnection("searching", inputNodes[i], outputNodes[j]);
-                }
-            } else {
-                if (isLastOutputEqualForWeight(1 - currentNetwork)) {
-                    drawConnection("correct", inputNodes[i], outputNodes[j]);
-                } else {
-                    drawConnection("wrong", inputNodes[i], outputNodes[j]);
-                }
-            }
-        }
-    }
-
-    for (let i = 0; i < inputNodes.length; i++) {
-        drawNode(inputNodes[i]);
-        printLabel("x", i, inputNodes[i]);
-    }
-
-    for (let i = 0; i < outputNodes.length; i++) {
-        drawNode(outputNodes[i]);
-        printLabel("y", i, outputNodes[i]);
-    }
-}
-
-function printLabel(main, sub, node) {
-    strokeWeight(0);
-    fill(255, 0, 100);
-    text(sub, node.coordinate.x, node.coordinate.y + 10);
-    text(main, node.coordinate.x - 5, node.coordinate.y + 5);
-}
-
-function printTutorial() {
-    strokeWeight(0);
-    fill(255, 0, 0);
-    text("type n for next step, r for running, p for pause", 10, height - 200);
-    text("s for step-mode", 10, height - 170)
-}
-
-function printWeights() {
-    strokeWeight(0);
-    fill(255, 0, 0);
-    for (let i = 0; i < weights.length; i++) {
-        text(weights[i], outputNodes[i].coordinate.x + 40, outputNodes[i].coordinate.y);
-    }
 }
 
 function keyPressed() {
