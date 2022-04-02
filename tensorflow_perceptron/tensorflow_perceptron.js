@@ -21,11 +21,11 @@ const learningRate = tf.scalar(0.3);
 console.log("Learning Rate: ");
 learningRate.print(true);
 
-let weights = tf.tensor([[1], [1], [1]]);
+let weights = tf.tensor([[1, 1], [1, 1], [1, 1]]);
 console.log("Weights: ");
 weights.print(true);
 
-const expectedOutput = tf.tensor([[0], [0], [0], [1]]);
+const expectedOutput = tf.tensor([[0, 0], [0, 1], [0, 1], [1, 1]]);
 console.log("Expected Output: ");
 expectedOutput.print(true);
 
