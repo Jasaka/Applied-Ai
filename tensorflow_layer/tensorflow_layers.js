@@ -4,8 +4,16 @@ let inputNodes = [
     new Node(new Coordinate(50, 225), "off", new Label("x", "2"))
 ];
 
-let outputNodes = [
-    new Node(new Coordinate(150, 112), "off", new Label("y", "0"))
+let firstLayer = [
+    new Node(new Coordinate(150, 75), "off", new Label("y", "0")),
+    new Node(new Coordinate(150, 150), "on", new Label("y", "1")),
+    new Node(new Coordinate(150, 225), "off", new Label("y", "2"))
+];
+
+let secondLayer = [
+    new Node(new Coordinate(250, 75), "off", new Label("z", "0")),
+    new Node(new Coordinate(250, 150), "on", new Label("z", "1")),
+    new Node(new Coordinate(250, 225), "off", new Label("z", "2"))
 ];
 
 const verbose = false
@@ -83,14 +91,10 @@ function setup() {
     const canvas = createCanvas(500, 500);
     frameRate(1);
     colorMode(HSB, 360, 100, 100);
-    background(0, 0, 1);
+    background(0, 0, 100);
+    drawInertNetwork([inputNodes, firstLayer, secondLayer]);
 }
 
 function draw() {
-    background(0, 0, 100);
-
-    drawNodes(inputNodes);
-    drawNodes(outputNodes);
-
 }
 

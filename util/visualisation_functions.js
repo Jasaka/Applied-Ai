@@ -1,3 +1,20 @@
+function drawInertNetwork(networkLayers){
+    console.log(networkLayers)
+    // three for loops to draw the network
+    for(let i = 0; i < networkLayers.length - 1; i++){
+        for(let j = 0; j < networkLayers[i].length; j++){
+            for(let k = 0; k < networkLayers[i][j].length; k++){
+                 drawConnection("searching", networkLayers[i][j][k], networkLayers[i+1][j][k])
+            }
+        }
+    }
+    for(let i = 0; i < networkLayers.length; i++){
+        for(let j = 0; j < networkLayers[i].length; j++){
+                drawNodes(networkLayers[i][j])
+        }
+    }
+}
+
 function drawConnection(strokeMode, startNode, endNode) {
     setStroke(strokeMode);
     strokeWeight(5);
@@ -87,6 +104,6 @@ function printWeights(weights) {
     strokeWeight(0);
     fill(255, 0, 0);
     for (let i = 0; i < weights.length; i++) {
-        text(weights[i], outputNodes[i].coordinate.x + 40, outputNodes[i].coordinate.y);
+        text(weights[i], firstLayer[i].coordinate.x + 40, firstLayer[i].coordinate.y);
     }
 }
